@@ -33,7 +33,8 @@ public class CalculatorTest {
             "1,2,/,0,Result: 0.500",
             "2,1,/,0,Result: 2",
             "-1,2,+,0,Result: 1",
-            "0.1,0.2,*,0,Result: 0.020"
+            "0.1,0.2,*,0,Result: 0.020",
+            "18446744073709551616,18446744073709551616,*,0,Result: 340282366920938463463374607431768211456",
     })
     void testOperations(String num1, String num2, String op, int ret, String expected) {
         String input = num1 + "\n" + num2 + "\n" + op + "\n";

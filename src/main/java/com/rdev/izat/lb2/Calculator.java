@@ -6,7 +6,7 @@ import java.text.DecimalFormat;
 import java.util.Scanner;
 
 public class Calculator {
-    private static final MathContext mathCtx = MathContext.DECIMAL64;
+    private static final MathContext mathCtx = MathContext.UNLIMITED;
     private static final DecimalFormat format = new DecimalFormat("0.000");
     private final Scanner scanner = new Scanner(System.in);
 
