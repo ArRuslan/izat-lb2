@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 
@@ -12,15 +13,32 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.api.Test;
 
 public class CalculatorTest {
-    private int runProgram(String input, StringBuilder output) {
+    static class LastLineLogger implements ILogger {
+        public String lastLine = null;
+
+        @Override
+        public void debug(String message, Object... fmt) {
+            lastLine = String.format(message, fmt);
+        }
+
+        @Override
+        public void info(String message, Object... fmt) {
+            lastLine = String.format(message, fmt);
+        }
+
+        @Override
+        public void error(String message, Object... fmt) {
+            lastLine = String.format(message, fmt);
+        }
+    }
+
+    private int runProgram(String input, ILogger logger) {
+        InputStream realStdIn = System.in;
         ByteArrayInputStream in = new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8));
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         System.setIn(in);
-        System.setOut(new PrintStream(out));
-
-        int result = new Calculator().run();
-        output.append(out);
+        int result = new Calculator(logger).run();
+        System.setIn(realStdIn);
 
         return result;
     }
@@ -38,25 +56,23 @@ public class CalculatorTest {
     })
     void testOperations(String num1, String num2, String op, int ret, String expected) {
         String input = num1 + "\n" + num2 + "\n" + op + "\n";
-        StringBuilder output = new StringBuilder();
+        LastLineLogger logger = new LastLineLogger();
 
-        int result = runProgram(input, output);
+        int result = runProgram(input, logger);
+
         assertEquals(ret, result);
-
-        String[] outputLines = output.toString().split(System.lineSeparator());
-        assertEquals(expected, outputLines[outputLines.length - 1]);
+        assertEquals(expected, logger.lastLine);
     }
 
     @Test
     void testDivisionByZero() {
         String input = "1\n0\n/\n";
-        StringBuilder output = new StringBuilder();
+        LastLineLogger logger = new LastLineLogger();
 
-        int result = runProgram(input, output);
+        int result = runProgram(input, logger);
+
         assertEquals(1, result);
-
-        String[] outputLines = output.toString().split(System.lineSeparator());
-        assertEquals("Can't divide by zero!", outputLines[outputLines.length - 1]);
+        assertEquals("Can't divide by zero!", logger.lastLine);
     }
 
     @ParameterizedTest
@@ -71,14 +87,12 @@ public class CalculatorTest {
             "1,-nan,+,Invalid number!"
     })
     void testInvalidParams(String num1, String num2, String op, String expected) {
-
         String input = num1 + "\n" + num2 + "\n" + op + "\n";
-        StringBuilder output = new StringBuilder();
+        LastLineLogger logger = new LastLineLogger();
 
-        int result = runProgram(input, output);
+        int result = runProgram(input, logger);
+
         assertEquals(1, result);
-
-        String[] outputLines = output.toString().split(System.lineSeparator());
-        assertEquals(expected, outputLines[outputLines.length - 1]);
+        assertEquals(expected, logger.lastLine);
     }
 }

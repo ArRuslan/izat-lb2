@@ -8,10 +8,40 @@ import java.util.Scanner;
 public class Calculator {
     private static final MathContext mathCtx = MathContext.UNLIMITED;
     private static final DecimalFormat format = new DecimalFormat("0.000");
+    private static final ILogger defaultLogger = new ILogger() {
+        private void log(String message, Object... fmt) {
+            System.out.printf(message + "%n", fmt);
+        }
+
+        @Override
+        public void debug(String message, Object... fmt) {
+            log(message + "%n", fmt);
+        }
+
+        @Override
+        public void info(String message, Object... fmt) {
+            log(message + "%n", fmt);
+        }
+
+        @Override
+        public void error(String message, Object... fmt) {
+            log(message + "%n", fmt);
+        }
+    };
+
     private final Scanner scanner = new Scanner(System.in);
+    private final ILogger logger;
+
+    public Calculator() {
+        this(defaultLogger);
+    }
+
+    public Calculator(ILogger logger) {
+        this.logger = logger;
+    }
 
     private BigDecimal readNumber(String prompt) {
-        System.out.println(prompt);
+        logger.info(prompt);
         String input = scanner.nextLine().trim();
 
         try {
@@ -24,40 +54,44 @@ public class Calculator {
     public int run() {
         BigDecimal a = readNumber("First number: ");
         if (a == null) {
-            System.out.println("Invalid number!");
+            logger.error("Invalid number!");
             return 1;
         }
 
         BigDecimal b = readNumber("Second number: ");
         if (b == null) {
-            System.out.println("Invalid number!");
+            logger.error("Invalid number!");
             return 1;
         }
 
-        System.out.println("Operation (+, -, *, /): ");
+        logger.info("Operation (+, -, *, /): ");
         String op = scanner.nextLine().trim();
 
         BigDecimal result;
 
         switch (op) {
             case "+":
+                logger.debug("ADD: %s %s", a, b);
                 result = a.add(b);
                 break;
             case "-":
+                logger.debug("SUB: %s %s", a, b);
                 result = a.subtract(b);
                 break;
             case "*":
+                logger.debug("MUL: %s %s", a, b);
                 result = a.multiply(b);
                 break;
             case "/":
+                logger.debug("DIV: %s %s", a, b);
                 if (b.equals(BigDecimal.ZERO)) {
-                    System.out.println("Can't divide by zero!");
+                    logger.error("Can't divide by zero!");
                     return 1;
                 }
                 result = a.divide(b, mathCtx);
                 break;
             default:
-                System.out.println("Invalid operation!");
+                logger.error("Invalid operation!");
                 return 1;
         }
 
@@ -69,7 +103,7 @@ public class Calculator {
             formattedResult = result.toBigInteger().toString();
         }
 
-        System.out.printf("Result: %s%n", formattedResult);
+        logger.info("Result: %s", formattedResult);
 
         return 0;
     }
