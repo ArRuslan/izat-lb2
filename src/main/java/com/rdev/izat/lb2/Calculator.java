@@ -1,35 +1,34 @@
 package com.rdev.izat.lb2;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.text.DecimalFormat;
 import java.util.Scanner;
 
 public class Calculator {
+    private static final MathContext mathCtx = MathContext.DECIMAL64;
+    private static final DecimalFormat format = new DecimalFormat("0.000");
     private final Scanner scanner = new Scanner(System.in);
 
-    private Double readNumber(String prompt) {
+    private BigDecimal readNumber(String prompt) {
         System.out.println(prompt);
         String input = scanner.nextLine().trim();
 
         try {
-            double num = Double.parseDouble(input);
-
-            if (Double.isNaN(num) || Double.isInfinite(num)) {
-                return null;
-            }
-
-            return num;
+            return new BigDecimal(input, mathCtx);
         } catch (NumberFormatException e) {
             return null;
         }
     }
 
     public int run() {
-        Double a = readNumber("First number: ");
+        BigDecimal a = readNumber("First number: ");
         if (a == null) {
             System.out.println("Invalid number!");
             return 1;
         }
 
-        Double b = readNumber("Second number: ");
+        BigDecimal b = readNumber("Second number: ");
         if (b == null) {
             System.out.println("Invalid number!");
             return 1;
@@ -38,35 +37,39 @@ public class Calculator {
         System.out.println("Operation (+, -, *, /): ");
         String op = scanner.nextLine().trim();
 
-        double result;
+        BigDecimal result;
 
         switch (op) {
             case "+":
-                result = a + b;
+                result = a.add(b);
                 break;
             case "-":
-                result = a - b;
+                result = a.subtract(b);
                 break;
             case "*":
-                result = a * b;
+                result = a.multiply(b);
                 break;
             case "/":
-                if (b == 0) {
+                if (b.equals(BigDecimal.ZERO)) {
                     System.out.println("Can't divide by zero!");
                     return 1;
                 }
-                result = a / b;
+                result = a.divide(b, mathCtx);
                 break;
             default:
                 System.out.println("Invalid operation!");
                 return 1;
         }
 
-        if (result % 1 != 0) {
-            System.out.printf("Result: %.3f%n", result);
+        String formattedResult;
+
+        if (!result.remainder(BigDecimal.ONE).equals(BigDecimal.ZERO)) {
+            formattedResult = format.format(result);
         } else {
-            System.out.println("Result: " + (long) result);
+            formattedResult = result.toBigInteger().toString();
         }
+
+        System.out.printf("Result: %s%n", formattedResult);
 
         return 0;
     }
