@@ -1,0 +1,9 @@
+num_a,num_b,op,output
+1,a,+,Invalid number!
+a,2,-,Invalid number!
+a,b,*,Invalid number!
+1,2,//,Invalid operation!
+inf,2,+,Invalid number!
+1,-inf,+,Invalid number!
+nan,2,+,Invalid number!
+1,-nan,+,Invalid number!
