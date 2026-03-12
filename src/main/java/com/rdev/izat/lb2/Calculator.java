@@ -40,32 +40,34 @@ public class Calculator {
         this.logger = logger;
     }
 
-    private BigDecimal readNumber(String prompt) {
-        logger.info(prompt);
-        String input = scanner.nextLine().trim();
-
+    private BigDecimal parseNumberOrNull(String number) {
         try {
-            return new BigDecimal(input, mathCtx);
+            return new BigDecimal(number, mathCtx);
         } catch (NumberFormatException e) {
             return null;
         }
     }
 
-    public int run() {
-        BigDecimal a = readNumber("First number: ");
+    private String readLine(String prompt) {
+        logger.info(prompt);
+        return scanner.nextLine().trim();
+    }
+
+    private BigDecimal readNumber(String prompt) {
+        String input = readLine(prompt);
+        return parseNumberOrNull(input);
+    }
+
+    public String run(String aStr, String bStr, String op) throws CalculatorException {
+        BigDecimal a = parseNumberOrNull(aStr);
         if (a == null) {
-            logger.error("Invalid number!");
-            return 1;
+            throw new CalculatorException("Invalid number!");
         }
 
-        BigDecimal b = readNumber("Second number: ");
+        BigDecimal b = parseNumberOrNull(bStr);
         if (b == null) {
-            logger.error("Invalid number!");
-            return 1;
+            throw new CalculatorException("Invalid number!");
         }
-
-        logger.info("Operation (+, -, *, /): ");
-        String op = scanner.nextLine().trim();
 
         BigDecimal result;
 
@@ -85,31 +87,48 @@ public class Calculator {
             case "/":
                 logger.debug("DIV: %s %s", a, b);
                 if (b.equals(BigDecimal.ZERO)) {
-                    logger.error("Can't divide by zero!");
-                    return 1;
+                    throw new CalculatorException("Can't divide by zero!");
                 }
                 result = a.divide(b, mathCtx);
                 break;
             default:
-                logger.error("Invalid operation!");
-                return 1;
+                throw new CalculatorException("Invalid operation!");
         }
-
-        String formattedResult;
 
         if (!result.remainder(BigDecimal.ONE).equals(BigDecimal.ZERO)) {
-            formattedResult = format.format(result);
+            return format.format(result);
         } else {
-            formattedResult = result.toBigInteger().toString();
+            return result.toBigInteger().toString();
+        }
+    }
+
+    public int runCli() {
+        String a = readLine("First number: ");
+        String b = readLine("Second number: ");
+        String op = readLine("Operation (+, -, *, /): ");
+
+        String result;
+
+        try {
+            result = run(a, b, op);
+        } catch (CalculatorException e) {
+            logger.error(e.getMessage());
+            return 1;
         }
 
-        logger.info("Result: %s", formattedResult);
+        logger.info("Result: %s", result);
 
         return 0;
     }
 
     public static void main(String[] args) {
-        int ret = new Calculator().run();
+        int ret = new Calculator().runCli();
         System.exit(ret);
+    }
+
+    public static class CalculatorException extends Exception {
+        public CalculatorException(String msg) {
+            super(msg);
+        }
     }
 }
