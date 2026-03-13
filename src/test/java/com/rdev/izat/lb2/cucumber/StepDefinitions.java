@@ -1,6 +1,7 @@
 package com.rdev.izat.lb2.cucumber;
 
 import com.rdev.izat.lb2.Calculator;
+import com.rdev.izat.lb2.ILogger;
 import io.cucumber.java.Before;
 import io.cucumber.java.PendingException;
 import io.cucumber.java.en.Given;
@@ -14,6 +15,20 @@ public class StepDefinitions {
     private String op;
     private String result;
     private String error;
+
+    private static final ILogger NOOP_LOGGER = new ILogger() {
+        @Override
+        public void debug(String message, Object... fmt) {
+        }
+
+        @Override
+        public void info(String message, Object... fmt) {
+        }
+
+        @Override
+        public void error(String message, Object... fmt) {
+        }
+    };
 
     @Given("first number is {string}")
     public void first_number_is(String a) {
@@ -33,7 +48,7 @@ public class StepDefinitions {
     @When("I calculate the result")
     public void i_calculate_the_result() {
         try {
-            result = new Calculator().run(a, b, op);
+            result = new Calculator(NOOP_LOGGER).run(a, b, op);
         } catch (Calculator.CalculatorException exc) {
             error = exc.getMessage();
         }
